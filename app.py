@@ -74,8 +74,16 @@ PALETTE = {
     "s3": "#F59E0B",
     "s4": "#EF4444",
 }
-SEASON_COLORS = {0: PALETTE["s0"], 1: PALETTE["s1"], 2: PALETTE["s2"], 3: PALETTE["s3"], 4: PALETTE["s4"]}
-SEASON_LABELS = {0: "Teaser", 1: "Season 1", 2: "Season 2", 3: "Season 3", 4: "Season 4"}
+SEASON_COLORS_LIST = [PALETTE["s0"], PALETTE["s1"], PALETTE["s2"], PALETTE["s3"], PALETTE["s4"],
+                      "#8B5CF6", "#06B6D4", "#F97316", "#84CC16", "#EC4899"]
+
+
+def get_season_color(s: int) -> str:
+    return SEASON_COLORS_LIST[s] if s < len(SEASON_COLORS_LIST) else "#94a3b8"
+
+
+def get_season_label(s: int) -> str:
+    return "Teaser" if s == 0 else f"Season {s}"
 CHANNEL_COLORS = {
     "YouTube": PALETTE["yt_long"],
     "Audio": PALETTE["audio_fr"],
@@ -96,7 +104,7 @@ PLOTLY_LAYOUT = dict(
 # Data Loading
 # ═══════════════════════════════════════════════════════════════════════════
 
-EXCEL_FILE = "Healthier_Humanity_Podcast_Performance_2026-02-11.xlsx"
+DEFAULT_FILE = "Healthier_Humanity_Podcast_Performance_2026-02-11.xlsx"
 
 
 def fmt(n: float) -> str:
@@ -111,9 +119,10 @@ def fmt(n: float) -> str:
 
 
 @st.cache_data
-def load_all():
-    """Load every sheet into a dict of DataFrames."""
-    xls = pd.ExcelFile(EXCEL_FILE)
+def load_all(file_bytes: bytes):
+    """Load every sheet into a dict of DataFrames from raw file bytes."""
+    from io import BytesIO
+    xls = pd.ExcelFile(BytesIO(file_bytes))
     data = {}
 
     # Config
@@ -131,7 +140,7 @@ def load_all():
     ep["short_label"] = ep.apply(
         lambda r: "Teaser" if r["ep_num"] == 0 else f"Ep {int(r['ep_num'])}", axis=1
     )
-    ep["season_label"] = ep["season"].map(SEASON_LABELS)
+    ep["season_label"] = ep["season"].map(get_season_label)
     data["episodes"] = ep
 
     # Summary by episode
@@ -167,7 +176,7 @@ def load_all():
         "li_imp", "li_likes", "li_comments", "li_shares",
     ]
     ss["season"] = ss["season"].astype(int)
-    ss["season_label"] = ss["season"].map(SEASON_LABELS)
+    ss["season_label"] = ss["season"].map(get_season_label)
     ss["total_reach"] = ss["yt_total_views"] + ss["audio_total"] + ss["tt_views"] + ss["ig_views"] + ss["blog_views"]
     data["summary_season"] = ss
 
@@ -196,22 +205,49 @@ def load_all():
 # ═══════════════════════════════════════════════════════════════════════════
 
 def main():
-    data = load_all()
+    # ── File Upload ─────────────────────────────────────────────────────
+    import os
+
+    st.markdown(
+        """
+        <div style="text-align:center; padding:0 0 0.2rem 0">
+            <h1 style="margin-bottom:0; font-size:2.2rem; background: linear-gradient(135deg, #0f172a, #3b82f6);
+                -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                🎙️ Healthier Humanity Podcast
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    uploaded = st.file_uploader(
+        "Upload a performance tracking Excel file to refresh the dashboard",
+        type=["xlsx"],
+        help="Upload a new snapshot (.xlsx) following the same format. The dashboard updates instantly.",
+    )
+
+    if uploaded is not None:
+        file_bytes = uploaded.getvalue()
+    elif os.path.exists(DEFAULT_FILE):
+        with open(DEFAULT_FILE, "rb") as f:
+            file_bytes = f.read()
+    else:
+        st.info("👆 Please upload an Excel performance tracking file to get started.")
+        st.stop()
+
+    data = load_all(file_bytes)
     se = data["summary_ep"]
     ss = data["summary_season"]
     yt = data["yt_long"]
     au = data["audio"]
     snapshot = data["snapshot_date"]
 
-    # ── Header ──────────────────────────────────────────────────────────
+    # ── Header subtitle ─────────────────────────────────────────────────
+    source_label = f"📂 **{uploaded.name}**" if uploaded else f"📂 **{DEFAULT_FILE}**"
     st.markdown(
         f"""
         <div style="text-align:center; padding:0 0 0.8rem 0">
-            <h1 style="margin-bottom:0; font-size:2.2rem; background: linear-gradient(135deg, #0f172a, #3b82f6);
-                -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-                🎙️ Healthier Humanity Podcast
-            </h1>
-            <p style="font-size:1rem; color:#64748b; margin-top:4px">
+            <p style="font-size:1rem; color:#64748b; margin-top:0">
                 Executive Performance Dashboard · Data as of {snapshot}
             </p>
         </div>
@@ -294,7 +330,7 @@ def main():
     with col_b:
         st.markdown("### Per-Episode Reach")
         fig_ep = go.Figure()
-        colors = [SEASON_COLORS.get(s, "#94a3b8") for s in ep_data["season"]]
+        colors = [get_season_color(s) for s in ep_data["season"]]
         fig_ep.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["total_reach"],
             marker_color=colors,
@@ -343,7 +379,7 @@ def main():
     with col_yt2:
         st.markdown("### Click-Through Rate (CTR)")
         ctr_data = ep_data[ep_data["yt_long_ctr"] > 0].copy()
-        ctr_colors = [SEASON_COLORS.get(s, "#94a3b8") for s in ctr_data["season"]]
+        ctr_colors = [get_season_color(s) for s in ctr_data["season"]]
         fig_ctr = make_subplots(specs=[[{"secondary_y": True}]])
         fig_ctr.add_trace(go.Bar(
             x=ctr_data["short_label"],
@@ -498,7 +534,7 @@ def main():
         fig_top = go.Figure(go.Bar(
             y=top["label"], x=top["total_reach"],
             orientation="h",
-            marker_color=[SEASON_COLORS.get(s, "#94a3b8") for s in top["season"]],
+            marker_color=[get_season_color(s) for s in top["season"]],
             text=[fmt(v) for v in top["total_reach"]],
             textposition="outside", textfont=dict(size=10),
             hovertemplate="%{y}<br>Reach: %{x:,.0f}<extra></extra>",
@@ -625,12 +661,14 @@ def main():
     # ═══════════════════════════════════════════════════════════════════
     st.markdown("## 📋 Complete Episode Performance Data")
 
-    seasons_filter = ["All Seasons"] + [SEASON_LABELS[s] for s in sorted(se["season"].unique()) if s > 0]
+    seasons_filter = ["All Seasons"] + [get_season_label(s) for s in sorted(se["season"].unique()) if s > 0]
     sel = st.selectbox("Filter by season:", seasons_filter)
     if sel == "All Seasons":
         show = se[se["ep_num"] > 0].copy()
     else:
-        s_num = {v: k for k, v in SEASON_LABELS.items()}[sel]
+        # Reverse lookup: "Season 3" → 3
+        label_to_num = {get_season_label(s): s for s in se["season"].unique()}
+        s_num = label_to_num[sel]
         show = se[se["season"] == s_num].copy()
 
     col_rename = {
