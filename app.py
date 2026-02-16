@@ -495,7 +495,96 @@ def main():
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
     # ═══════════════════════════════════════════════════════════════════
-    # SECTION 5: Channel Mix & Top Episodes
+    # SECTION 5: Reach vs Deep Engagement
+    # ═══════════════════════════════════════════════════════════════════
+    st.markdown("## 🎯 Reach vs Deep Engagement")
+    st.caption(
+        "**Deep listens** = YouTube long-form views + Audio downloads — people who actually engage with the full episode. "
+        "**Viral reach** = Shorts + TikTok + Instagram — broad but shallow exposure."
+    )
+
+    ep_data["deep_listens"] = ep_data["yt_long_views"] + ep_data["audio_total"]
+    ep_data["viral_reach"] = ep_data["yt_shorts_views"] + ep_data["tt_views"] + ep_data["ig_views"]
+    ep_data["depth_ratio"] = (ep_data["deep_listens"] / ep_data["total_reach"].replace(0, 1) * 100).round(1)
+
+    col_d1, col_d2 = st.columns(2)
+
+    with col_d1:
+        st.markdown("### Top 10 Episodes by Deep Listens")
+        top_deep = ep_data.nlargest(10, "deep_listens").sort_values("deep_listens", ascending=True)
+        fig_deep = go.Figure()
+        fig_deep.add_trace(go.Bar(
+            y=top_deep["label"], x=top_deep["yt_long_views"],
+            name="YouTube Long-form", orientation="h",
+            marker_color=PALETTE["yt_long"],
+            hovertemplate="YT Long: %{x:,.0f}<extra></extra>",
+        ))
+        fig_deep.add_trace(go.Bar(
+            y=top_deep["label"], x=top_deep["audio_total"],
+            name="Audio Downloads", orientation="h",
+            marker_color=PALETTE["audio_fr"],
+            hovertemplate="Audio: %{x:,.0f}<extra></extra>",
+        ))
+        fig_deep.update_layout(
+            **{k: v for k, v in PLOTLY_LAYOUT.items() if k != "margin"},
+            barmode="stack", height=450,
+            xaxis_title="Deep Listens",
+            legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
+            margin=dict(l=200, r=20, t=40, b=50),
+        )
+        fig_deep.update_xaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_deep, use_container_width=True)
+
+    with col_d2:
+        st.markdown("### Deep Listens vs Viral Reach per Episode")
+        fig_dv = go.Figure()
+        fig_dv.add_trace(go.Bar(
+            x=ep_data["short_label"], y=ep_data["deep_listens"],
+            name="Deep Listens", marker_color="#1e40af",
+            hovertemplate="Deep: %{y:,.0f}<extra></extra>",
+        ))
+        fig_dv.add_trace(go.Bar(
+            x=ep_data["short_label"], y=ep_data["viral_reach"],
+            name="Viral Reach", marker_color="#fbbf24",
+            hovertemplate="Viral: %{y:,.0f}<extra></extra>",
+        ))
+        fig_dv.update_layout(
+            **PLOTLY_LAYOUT, barmode="group", height=450,
+            yaxis_title="Views / Downloads",
+            legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
+            xaxis_tickangle=-45,
+        )
+        fig_dv.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_dv, use_container_width=True)
+
+    # Engagement depth ratio chart
+    st.markdown("### Engagement Depth Ratio")
+    st.caption("What % of each episode's total reach comes from deep listens. Higher = more engaged audience.")
+    sorted_depth = ep_data.sort_values("depth_ratio", ascending=True)
+    bar_colors = ["#1e40af" if r >= 50 else "#f59e0b" if r >= 20 else "#ef4444" for r in sorted_depth["depth_ratio"]]
+    fig_ratio = go.Figure(go.Bar(
+        y=sorted_depth["label"], x=sorted_depth["depth_ratio"],
+        orientation="h",
+        marker_color=bar_colors,
+        text=[f"{v:.0f}%" for v in sorted_depth["depth_ratio"]],
+        textposition="outside", textfont=dict(size=10),
+        hovertemplate="%{y}<br>Depth ratio: %{x:.1f}%<extra></extra>",
+    ))
+    fig_ratio.update_layout(
+        **{k: v for k, v in PLOTLY_LAYOUT.items() if k != "margin"},
+        height=max(350, len(sorted_depth) * 32 + 80),
+        xaxis_title="Deep Listens as % of Total Reach",
+        margin=dict(l=220, r=60, t=20, b=50),
+    )
+    fig_ratio.update_xaxes(gridcolor="#f1f5f9", zeroline=False, range=[0, min(105, sorted_depth["depth_ratio"].max() + 10)])
+    fig_ratio.add_vline(x=50, line_dash="dot", line_color="#94a3b8", line_width=1,
+                        annotation_text="50%", annotation_position="top")
+    st.plotly_chart(fig_ratio, use_container_width=True)
+
+    st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ═══════════════════════════════════════════════════════════════════
+    # SECTION 6: Channel Mix & Top Episodes
     # ═══════════════════════════════════════════════════════════════════
     st.markdown("## 🧩 Channel Mix & Top Content")
     col_m1, col_m2 = st.columns(2)
