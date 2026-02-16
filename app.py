@@ -104,7 +104,8 @@ PLOTLY_LAYOUT = dict(
 # Data Loading
 # ═══════════════════════════════════════════════════════════════════════════
 
-DEFAULT_FILE = "Healthier_Humanity_Podcast_Performance_2026-02-11.xlsx"
+EXPECTED_SHEETS = ["Config", "Episodes", "Summary_By_Season", "Summary_By_Episode",
+                    "YouTube_Long", "Audio"]
 
 
 def fmt(n: float) -> str:
@@ -206,8 +207,6 @@ def load_all(file_bytes: bytes):
 
 def main():
     # ── File Upload ─────────────────────────────────────────────────────
-    import os
-
     st.markdown(
         """
         <div style="text-align:center; padding:0 0 0.2rem 0">
@@ -226,14 +225,20 @@ def main():
         help="Upload a new snapshot (.xlsx) following the same format. The dashboard updates instantly.",
     )
 
-    if uploaded is not None:
-        file_bytes = uploaded.getvalue()
-    elif os.path.exists(DEFAULT_FILE):
-        with open(DEFAULT_FILE, "rb") as f:
-            file_bytes = f.read()
-    else:
-        st.info("👆 Please upload an Excel performance tracking file to get started.")
+    if uploaded is None:
+        st.markdown(
+            """
+            <div style="text-align:center; padding:3rem 1rem; color:#94a3b8">
+                <p style="font-size:3rem; margin-bottom:0.5rem">📊</p>
+                <p style="font-size:1.1rem; font-weight:500; color:#64748b">Upload your performance tracking Excel to generate the dashboard</p>
+                <p style="font-size:0.85rem">Drag & drop or click "Browse files" above</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         st.stop()
+
+    file_bytes = uploaded.getvalue()
 
     data = load_all(file_bytes)
     se = data["summary_ep"]
@@ -243,7 +248,6 @@ def main():
     snapshot = data["snapshot_date"]
 
     # ── Header subtitle ─────────────────────────────────────────────────
-    source_label = f"📂 **{uploaded.name}**" if uploaded else f"📂 **{DEFAULT_FILE}**"
     st.markdown(
         f"""
         <div style="text-align:center; padding:0 0 0.8rem 0">
