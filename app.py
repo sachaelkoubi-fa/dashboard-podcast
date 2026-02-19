@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import numpy as np
+from pathlib import Path
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Page Configuration
@@ -234,14 +235,19 @@ def main():
         unsafe_allow_html=True,
     )
 
+    # ── Load default bundled file on first visit ─────────────────────
+    DEFAULT_FILE = Path(__file__).parent / "data" / "default.xlsx"
+    if "file_bytes" not in st.session_state and DEFAULT_FILE.exists():
+        st.session_state["file_bytes"] = DEFAULT_FILE.read_bytes()
+        st.session_state["file_name"] = DEFAULT_FILE.name
+
     uploaded = st.file_uploader(
-        "Upload a performance tracking Excel file to refresh the dashboard",
+        "Upload a new performance tracking Excel to refresh the dashboard",
         type=["xlsx"],
-        help="Upload a new snapshot (.xlsx) following the same format. The dashboard updates instantly.",
+        help="Drag & drop a new snapshot (.xlsx). The dashboard updates instantly.",
     )
 
-    # Persist the last uploaded file in session state so the dashboard
-    # survives page reruns, widget interactions, and browser refreshes.
+    # When a new file is uploaded, override the current data
     if uploaded is not None:
         st.session_state["file_bytes"] = uploaded.getvalue()
         st.session_state["file_name"] = uploaded.name
