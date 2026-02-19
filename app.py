@@ -283,15 +283,17 @@ def main():
     blog_v = se["blog_views"].sum()
     tt_v = se["tt_views"].sum()
     ig_v = se["ig_views"].sum()
+    li_imp = se["li_imp"].sum()
     n_episodes = len(se[se["ep_num"] > 0])
 
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
     c1.metric("Total Reach", fmt(total_reach), help="Sum of views/downloads across all platforms")
     c2.metric("YouTube Views", fmt(yt_views), help="Long-form + Shorts")
     c3.metric("Audio Downloads", fmt(audio_dl))
     c4.metric("TikTok Views", fmt(tt_v))
     c5.metric("Instagram Views", fmt(ig_v))
-    c6.metric("Episodes Published", str(n_episodes))
+    c6.metric("LinkedIn Impressions", fmt(li_imp), help="Alan account impressions")
+    c7.metric("Episodes Published", str(n_episodes))
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
@@ -775,7 +777,62 @@ def main():
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
     # ═══════════════════════════════════════════════════════════════════
-    # SECTION 7: Cross-Platform Heatmap
+    # SECTION 7: LinkedIn Performance
+    # ═══════════════════════════════════════════════════════════════════
+    st.markdown("## 🔗 LinkedIn Performance")
+    st.caption("Impressions are from the Alan account only. Likes, comments & shares are aggregated across all accounts.")
+
+    col_li1, col_li2 = st.columns(2)
+
+    with col_li1:
+        st.markdown("### Impressions per Episode")
+        li_data = ep_data.copy()
+        fig_li_imp = go.Figure(go.Bar(
+            x=li_data["short_label"], y=li_data["li_imp"],
+            marker_color=PALETTE["linkedin"],
+            text=[fmt(v) if v > 0 else "" for v in li_data["li_imp"]],
+            textposition="outside", textfont=dict(size=9),
+            hovertemplate="%{x}<br>Impressions: %{y:,.0f}<extra></extra>",
+        ))
+        fig_li_imp.update_layout(
+            **PLOTLY_LAYOUT, height=420, showlegend=False,
+            yaxis_title="Impressions",
+            xaxis_tickangle=-45,
+        )
+        fig_li_imp.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_li_imp, use_container_width=True)
+
+    with col_li2:
+        st.markdown("### Engagement: Likes, Comments & Shares")
+        fig_li_eng = go.Figure()
+        fig_li_eng.add_trace(go.Bar(
+            x=li_data["short_label"], y=li_data["li_likes"],
+            name="Likes", marker_color="#0A66C2",
+            hovertemplate="Likes: %{y:,.0f}<extra></extra>",
+        ))
+        fig_li_eng.add_trace(go.Bar(
+            x=li_data["short_label"], y=li_data["li_comments"],
+            name="Comments", marker_color="#57A4E0",
+            hovertemplate="Comments: %{y:,.0f}<extra></extra>",
+        ))
+        fig_li_eng.add_trace(go.Bar(
+            x=li_data["short_label"], y=li_data["li_shares"],
+            name="Shares", marker_color="#A8D0F0",
+            hovertemplate="Shares: %{y:,.0f}<extra></extra>",
+        ))
+        fig_li_eng.update_layout(
+            **PLOTLY_LAYOUT, barmode="stack", height=420,
+            yaxis_title="Engagement Actions",
+            legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
+            xaxis_tickangle=-45,
+        )
+        fig_li_eng.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_li_eng, use_container_width=True)
+
+    st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ═══════════════════════════════════════════════════════════════════
+    # SECTION 8: Cross-Platform Heatmap
     # ═══════════════════════════════════════════════════════════════════
     st.markdown("## 🔥 Cross-Platform Performance Heatmap")
     hm_cols = ["yt_total_views", "audio_total", "tt_views", "ig_views", "blog_views"]
@@ -868,6 +925,10 @@ def main():
         "audio_total": "Audio DL",
         "tt_views": "TikTok Views",
         "ig_views": "IG Views",
+        "li_imp": "LI Impressions",
+        "li_likes": "LI Likes",
+        "li_comments": "LI Comments",
+        "li_shares": "LI Shares",
         "blog_views": "Blog Views",
         "total_reach": "Total Reach",
     }
@@ -887,6 +948,10 @@ def main():
             "Audio DL": "{:,.0f}",
             "TikTok Views": "{:,.0f}",
             "IG Views": "{:,.0f}",
+            "LI Impressions": "{:,.0f}",
+            "LI Likes": "{:,.0f}",
+            "LI Comments": "{:,.0f}",
+            "LI Shares": "{:,.0f}",
             "Blog Views": "{:,.0f}",
             "Total Reach": "{:,.0f}",
         }),
