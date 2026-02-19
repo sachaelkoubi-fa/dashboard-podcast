@@ -240,7 +240,13 @@ def main():
         help="Upload a new snapshot (.xlsx) following the same format. The dashboard updates instantly.",
     )
 
-    if uploaded is None:
+    # Persist the last uploaded file in session state so the dashboard
+    # survives page reruns, widget interactions, and browser refreshes.
+    if uploaded is not None:
+        st.session_state["file_bytes"] = uploaded.getvalue()
+        st.session_state["file_name"] = uploaded.name
+
+    if "file_bytes" not in st.session_state:
         st.markdown(
             """
             <div style="text-align:center; padding:3rem 1rem; color:#94a3b8">
@@ -253,7 +259,7 @@ def main():
         )
         st.stop()
 
-    file_bytes = uploaded.getvalue()
+    file_bytes = st.session_state["file_bytes"]
 
     data = load_all(file_bytes)
     se = data["summary_ep"]
