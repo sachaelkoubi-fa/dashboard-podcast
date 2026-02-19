@@ -150,6 +150,8 @@ def load_all(file_bytes: bytes):
     se.columns = [
         "season", "ep_num", "guest",
         "yt_long_views", "yt_long_imp", "yt_long_ctr",
+        "yt_long_likes", "yt_long_comments", "yt_long_subs",
+        "yt_long_shares", "yt_long_er",
         "n_shorts", "yt_shorts_views", "yt_shorts_imp",
         "yt_total_views", "audio_total",
         "tt_posts", "tt_views",
@@ -174,7 +176,7 @@ def load_all(file_bytes: bytes):
         "season", "yt_long_views", "yt_long_imp",
         "yt_shorts_views", "yt_shorts_imp", "yt_total_views",
         "audio_total", "tt_views", "ig_views", "blog_views",
-        "li_imp", "li_likes", "li_comments", "li_shares",
+        "li_posts", "li_imp", "li_likes", "li_comments", "li_shares",
     ]
     ss["season"] = ss["season"].astype(int)
     ss["season_label"] = ss["season"].map(get_season_label)
@@ -183,7 +185,14 @@ def load_all(file_bytes: bytes):
 
     # YouTube Long
     yt = pd.read_excel(xls, "YouTube_Long")
-    yt.columns = ["season", "ep_num", "guest", "url", "pub_date", "title", "views", "impressions", "ctr"]
+    yt.columns = [
+        "season", "ep_num", "guest", "url", "pub_date", "title",
+        "views", "impressions", "ctr",
+        "likes", "comments", "new_subs", "shares", "er",
+    ]
+    yt = yt.fillna(0)
+    for c in ["views", "impressions", "ctr", "likes", "comments", "new_subs", "shares", "er"]:
+        yt[c] = pd.to_numeric(yt[c], errors="coerce").fillna(0)
     yt["season"] = yt["season"].astype(int)
     yt["ep_num"] = yt["ep_num"].astype(int)
     yt["label"] = ep["label"].values
@@ -192,8 +201,14 @@ def load_all(file_bytes: bytes):
     # Audio
     au = pd.read_excel(xls, "Audio")
     au.columns = ["season", "ep_num", "guest", "dl_fr", "dl_en", "dl_total"]
+    # Drop trailing garbage rows (NaN seasons, "Source" annotations, etc.)
+    au = au[pd.to_numeric(au["season"], errors="coerce").notna()].copy()
+    au = au.iloc[:len(ep)]  # align with episodes master list
+    au = au.fillna(0)
     au["season"] = au["season"].astype(int)
     au["ep_num"] = au["ep_num"].astype(int)
+    for c in ["dl_fr", "dl_en", "dl_total"]:
+        au[c] = pd.to_numeric(au[c], errors="coerce").fillna(0)
     au["label"] = ep["label"].values
     au["short_label"] = ep["short_label"].values
     data["audio"] = au
@@ -411,6 +426,73 @@ def main():
         fig_ctr.update_yaxes(title_text="Impressions", gridcolor="#f1f5f9", zeroline=False, secondary_y=False)
         fig_ctr.update_yaxes(title_text="CTR (%)", secondary_y=True, showgrid=False)
         st.plotly_chart(fig_ctr, use_container_width=True)
+
+    st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
+
+    # ═══════════════════════════════════════════════════════════════════
+    # SECTION 3b: YouTube Engagement
+    # ═══════════════════════════════════════════════════════════════════
+    st.markdown("## 💬 YouTube Engagement")
+    col_eng1, col_eng2 = st.columns(2)
+
+    with col_eng1:
+        st.markdown("### Likes, Comments & Shares per Episode")
+        fig_eng = go.Figure()
+        fig_eng.add_trace(go.Bar(
+            x=ep_data["short_label"], y=ep_data["yt_long_likes"],
+            name="Likes", marker_color="#ef4444",
+            hovertemplate="Likes: %{y:,.0f}<extra></extra>",
+        ))
+        fig_eng.add_trace(go.Bar(
+            x=ep_data["short_label"], y=ep_data["yt_long_comments"],
+            name="Comments", marker_color="#3b82f6",
+            hovertemplate="Comments: %{y:,.0f}<extra></extra>",
+        ))
+        fig_eng.add_trace(go.Bar(
+            x=ep_data["short_label"], y=ep_data["yt_long_shares"],
+            name="Shares", marker_color="#10b981",
+            hovertemplate="Shares: %{y:,.0f}<extra></extra>",
+        ))
+        fig_eng.update_layout(
+            **PLOTLY_LAYOUT, barmode="group", height=420,
+            yaxis_title="Count",
+            legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
+            xaxis_tickangle=-45,
+        )
+        fig_eng.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_eng, use_container_width=True)
+
+    with col_eng2:
+        st.markdown("### Engagement Rate vs Views")
+        er_data = ep_data[ep_data["yt_long_er"] > 0].copy()
+        fig_er = go.Figure(go.Scatter(
+            x=er_data["yt_long_views"],
+            y=er_data["yt_long_er"] * 100,
+            mode="markers+text",
+            text=er_data["short_label"],
+            textposition="top center",
+            textfont=dict(size=9, color="#64748b"),
+            marker=dict(
+                size=er_data["yt_long_likes"].clip(lower=1) ** 0.5 * 1.5 + 6,
+                color=[get_season_color(s) for s in er_data["season"]],
+                line=dict(width=1.5, color="white"),
+                opacity=0.85,
+            ),
+            hovertemplate=(
+                "%{text}<br>"
+                "Views: %{x:,.0f}<br>"
+                "ER: %{y:.2f}%<br>"
+                "<extra></extra>"
+            ),
+        ))
+        fig_er.update_layout(
+            **PLOTLY_LAYOUT, height=420,
+            xaxis_title="Long-form Views",
+            yaxis_title="Engagement Rate (%)",
+        )
+        fig_er.update_xaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_er.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        st.plotly_chart(fig_er, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
 
@@ -736,12 +818,19 @@ def main():
     yt_sorted = yt.sort_values("views", ascending=False).reset_index(drop=True)
     yt_sorted["rank"] = range(1, len(yt_sorted) + 1)
     yt_sorted["ctr_pct"] = (yt_sorted["ctr"] * 100).round(1)
+    yt_sorted["er_pct"] = (yt_sorted["er"] * 100).round(2)
 
-    display_yt = yt_sorted[["rank", "label", "title", "views", "impressions", "ctr_pct"]].copy()
-    display_yt.columns = ["#", "Episode", "Title", "Views", "Impressions", "CTR %"]
+    display_yt = yt_sorted[["rank", "label", "title", "views", "impressions", "ctr_pct",
+                             "likes", "comments", "shares", "new_subs", "er_pct"]].copy()
+    display_yt.columns = ["#", "Episode", "Title", "Views", "Impressions", "CTR %",
+                           "Likes", "Comments", "Shares", "New Subs", "ER %"]
 
     st.dataframe(
-        display_yt.style.format({"Views": "{:,.0f}", "Impressions": "{:,.0f}", "CTR %": "{:.1f}%"}),
+        display_yt.style.format({
+            "Views": "{:,.0f}", "Impressions": "{:,.0f}", "CTR %": "{:.1f}%",
+            "Likes": "{:,.0f}", "Comments": "{:,.0f}", "Shares": "{:,.0f}",
+            "New Subs": "{:,.0f}", "ER %": "{:.2f}%",
+        }),
         use_container_width=True,
         height=500,
         hide_index=True,
@@ -768,6 +857,10 @@ def main():
         "label": "Episode",
         "season_label": "Season",
         "yt_long_views": "YT Long Views",
+        "yt_long_likes": "YT Likes",
+        "yt_long_comments": "YT Comments",
+        "yt_long_shares": "YT Shares",
+        "yt_long_er": "YT ER",
         "yt_shorts_views": "YT Shorts Views",
         "yt_total_views": "YT Total",
         "yt_long_imp": "YT Impressions",
@@ -783,6 +876,10 @@ def main():
     st.dataframe(
         tbl.style.format({
             "YT Long Views": "{:,.0f}",
+            "YT Likes": "{:,.0f}",
+            "YT Comments": "{:,.0f}",
+            "YT Shares": "{:,.0f}",
+            "YT ER": "{:.1%}",
             "YT Shorts Views": "{:,.0f}",
             "YT Total": "{:,.0f}",
             "YT Impressions": "{:,.0f}",
