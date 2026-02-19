@@ -27,12 +27,12 @@ st.markdown("""
     * { font-family: 'Inter', sans-serif; }
     .block-container { padding: 1rem 2rem 2rem 2rem; max-width: 1400px; }
     h1 { font-weight: 700 !important; letter-spacing: -0.5px; }
-    h2 { font-weight: 600 !important; font-size: 1.3rem !important; color: #1e293b; margin-top: 0.8rem !important; }
-    h3 { font-weight: 600 !important; font-size: 1.05rem !important; color: #334155; }
+    h2 { font-weight: 600 !important; font-size: 1.3rem !important; color: #282830; margin-top: 0.8rem !important; }
+    h3 { font-weight: 600 !important; font-size: 1.05rem !important; color: #282830; }
 
     /* KPI cards */
     [data-testid="metric-container"] {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #FFFCF5 100%);
         border: 1px solid #e2e8f0;
         border-radius: 16px;
         padding: 20px 24px;
@@ -44,7 +44,7 @@ st.markdown("""
         box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
     [data-testid="stMetricLabel"] p { font-size: 0.82rem; font-weight: 500; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-    [data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700 !important; color: #0f172a !important; }
+    [data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700 !important; color: #282830 !important; }
     [data-testid="stMetricDelta"] { font-size: 0.78rem; }
 
     /* Section separators */
@@ -60,43 +60,61 @@ st.markdown("""
 # Color Palette
 # ═══════════════════════════════════════════════════════════════════════════
 
-PALETTE = {
-    "yt_long": "#FF0000",
-    "yt_shorts": "#FF8A8A",
-    "audio_fr": "#7C3AED",
-    "audio_en": "#C4B5FD",
-    "tiktok": "#00C9C8",
-    "instagram": "#E1306C",
-    "blog": "#F59E0B",
-    "linkedin": "#0A66C2",
-    "s0": "#94a3b8",
-    "s1": "#3B82F6",
-    "s2": "#10B981",
-    "s3": "#F59E0B",
-    "s4": "#EF4444",
+# ── Brand Palette ──────────────────────────────────────────────────
+BRAND = {
+    "indigo":       "#5C59F3",
+    "orange":       "#FFBD7A",
+    "pink":         "#FFD1E1",
+    "blue":         "#C7DEFF",
+    "teal":         "#124548",
+    "light_blue":   "#EBF5FF",
+    "light_orange": "#FFE1C5",
+    "light_pink":   "#FFE7F0",
+    "cream":        "#FFFCF5",
+    "black":        "#282830",
 }
-SEASON_COLORS_LIST = [PALETTE["s0"], PALETTE["s1"], PALETTE["s2"], PALETTE["s3"], PALETTE["s4"],
-                      "#8B5CF6", "#06B6D4", "#F97316", "#84CC16", "#EC4899"]
+
+PALETTE = {
+    "yt_long":    BRAND["indigo"],       # YouTube long-form
+    "yt_shorts":  BRAND["blue"],         # YouTube shorts
+    "audio_fr":   BRAND["teal"],         # Audio French
+    "audio_en":   BRAND["blue"],         # Audio English
+    "tiktok":     BRAND["orange"],       # TikTok
+    "instagram":  BRAND["pink"],         # Instagram
+    "blog":       BRAND["light_orange"], # Blog
+    "linkedin":   BRAND["indigo"],       # LinkedIn
+    "s0": BRAND["blue"],                 # Teaser
+    "s1": BRAND["indigo"],               # Season 1
+    "s2": BRAND["teal"],                 # Season 2
+    "s3": BRAND["orange"],               # Season 3
+    "s4": BRAND["pink"],                 # Season 4
+}
+SEASON_COLORS_LIST = [
+    BRAND["blue"], BRAND["indigo"], BRAND["teal"], BRAND["orange"], BRAND["pink"],
+    BRAND["light_orange"], BRAND["black"], BRAND["light_blue"], BRAND["light_pink"], BRAND["cream"],
+]
 
 
 def get_season_color(s: int) -> str:
-    return SEASON_COLORS_LIST[s] if s < len(SEASON_COLORS_LIST) else "#94a3b8"
+    return SEASON_COLORS_LIST[s] if s < len(SEASON_COLORS_LIST) else BRAND["blue"]
 
 
 def get_season_label(s: int) -> str:
     return "Teaser" if s == 0 else f"Season {s}"
+
+
 CHANNEL_COLORS = {
-    "YouTube": PALETTE["yt_long"],
-    "Audio": PALETTE["audio_fr"],
-    "TikTok": PALETTE["tiktok"],
-    "Instagram": PALETTE["instagram"],
-    "Blog": PALETTE["blog"],
+    "YouTube":    BRAND["indigo"],
+    "Audio":      BRAND["teal"],
+    "TikTok":     BRAND["orange"],
+    "Instagram":  BRAND["pink"],
+    "Blog":       BRAND["light_orange"],
 }
 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter, sans-serif", size=12, color="#334155"),
+    font=dict(family="Inter, sans-serif", size=12, color=BRAND["black"]),
     margin=dict(l=50, r=20, t=40, b=50),
     hoverlabel=dict(bgcolor="white", font_size=12, font_family="Inter"),
 )
@@ -226,7 +244,7 @@ def main():
     st.markdown(
         """
         <div style="text-align:center; padding:0 0 0.2rem 0">
-            <h1 style="margin-bottom:0; font-size:2.2rem; background: linear-gradient(135deg, #0f172a, #3b82f6);
+            <h1 style="margin-bottom:0; font-size:2.2rem; background: linear-gradient(135deg, #282830, #5C59F3);
                 -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
                 🎙️ Healthier Humanity Podcast
             </h1>
@@ -331,25 +349,25 @@ def main():
             x=ep_data["short_label"], y=ep_data["cum_yt"],
             name="YouTube", fill="tozeroy", mode="lines",
             line=dict(color=PALETTE["yt_long"], width=0),
-            fillcolor="rgba(255,0,0,0.15)",
+            fillcolor="rgba(92,89,243,0.18)",
         ))
         fig_cum.add_trace(go.Scatter(
             x=ep_data["short_label"], y=ep_data["cum_yt"] + ep_data["cum_audio"],
             name="Audio", fill="tonexty", mode="lines",
             line=dict(color=PALETTE["audio_fr"], width=0),
-            fillcolor="rgba(124,58,237,0.15)",
+            fillcolor="rgba(18,69,72,0.18)",
         ))
         fig_cum.add_trace(go.Scatter(
             x=ep_data["short_label"], y=ep_data["cum_reach"],
             name="Total (incl. Social + Blog)", fill="tonexty", mode="lines",
             line=dict(color=PALETTE["tiktok"], width=0),
-            fillcolor="rgba(0,201,200,0.12)",
+            fillcolor="rgba(255,189,122,0.15)",
         ))
         # Add line on top
         fig_cum.add_trace(go.Scatter(
             x=ep_data["short_label"], y=ep_data["cum_reach"],
             name="", showlegend=False, mode="lines",
-            line=dict(color="#0f172a", width=2.5),
+            line=dict(color=BRAND["black"], width=2.5),
         ))
         fig_cum.update_layout(
             **PLOTLY_LAYOUT, height=380,
@@ -357,7 +375,7 @@ def main():
             legend=dict(orientation="h", y=1.12, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_cum.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_cum.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_cum, use_container_width=True)
 
     with col_b:
@@ -376,7 +394,7 @@ def main():
             yaxis_title="Total Reach",
             xaxis_tickangle=-45,
         )
-        fig_ep.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_ep.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_ep, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -406,7 +424,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_yt.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_yt.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_yt, use_container_width=True)
 
     with col_yt2:
@@ -418,7 +436,7 @@ def main():
             x=ctr_data["short_label"],
             y=ctr_data["yt_long_imp"],
             name="Impressions",
-            marker_color=["rgba(59,130,246,0.18)"] * len(ctr_data),
+            marker_color=["rgba(92,89,243,0.15)"] * len(ctr_data),
             hovertemplate="Impressions: %{y:,.0f}<extra></extra>",
         ), secondary_y=False)
         fig_ctr.add_trace(go.Scatter(
@@ -429,7 +447,7 @@ def main():
             text=[f"{v*100:.1f}%" for v in ctr_data["yt_long_ctr"]],
             textposition="top center", textfont=dict(size=9, color=PALETTE["yt_long"]),
             marker=dict(color=ctr_colors, size=10, line=dict(width=2, color="white")),
-            line=dict(color="#ef4444", width=2),
+            line=dict(color=BRAND["orange"], width=2),
             hovertemplate="CTR: %{y:.1f}%<extra></extra>",
         ), secondary_y=True)
         fig_ctr.update_layout(
@@ -437,7 +455,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_ctr.update_yaxes(title_text="Impressions", gridcolor="#f1f5f9", zeroline=False, secondary_y=False)
+        fig_ctr.update_yaxes(title_text="Impressions", gridcolor=BRAND["light_blue"], zeroline=False, secondary_y=False)
         fig_ctr.update_yaxes(title_text="CTR (%)", secondary_y=True, showgrid=False)
         st.plotly_chart(fig_ctr, use_container_width=True)
 
@@ -454,17 +472,17 @@ def main():
         fig_eng = go.Figure()
         fig_eng.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["yt_long_likes"],
-            name="Likes", marker_color="#ef4444",
+            name="Likes", marker_color=BRAND["indigo"],
             hovertemplate="Likes: %{y:,.0f}<extra></extra>",
         ))
         fig_eng.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["yt_long_comments"],
-            name="Comments", marker_color="#3b82f6",
+            name="Comments", marker_color=BRAND["orange"],
             hovertemplate="Comments: %{y:,.0f}<extra></extra>",
         ))
         fig_eng.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["yt_long_shares"],
-            name="Shares", marker_color="#10b981",
+            name="Shares", marker_color=BRAND["teal"],
             hovertemplate="Shares: %{y:,.0f}<extra></extra>",
         ))
         fig_eng.update_layout(
@@ -473,7 +491,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_eng.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_eng.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_eng, use_container_width=True)
 
     with col_eng2:
@@ -504,8 +522,8 @@ def main():
             xaxis_title="Long-form Views",
             yaxis_title="Engagement Rate (%)",
         )
-        fig_er.update_xaxes(gridcolor="#f1f5f9", zeroline=False)
-        fig_er.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_er.update_xaxes(gridcolor=BRAND["light_blue"], zeroline=False)
+        fig_er.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_er, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -538,7 +556,7 @@ def main():
             yaxis_title="Total Views / Downloads",
             legend=dict(orientation="h", y=1.12, x=0.5, xanchor="center"),
         )
-        fig_season.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_season.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_season, use_container_width=True)
 
     with col_s2:
@@ -574,7 +592,7 @@ def main():
                 fig_growth.add_trace(go.Bar(
                     x=subset["transition"], y=subset["growth"],
                     name=metric_name,
-                    marker_color=CHANNEL_COLORS.get(metric_name, "#64748b"),
+                    marker_color=CHANNEL_COLORS.get(metric_name, BRAND["black"]),
                     text=[f"{v:+.0f}%" for v in subset["growth"]],
                     textposition="outside", textfont=dict(size=9),
                     hovertemplate=f"{metric_name}: " + "%{y:+.1f}%<extra></extra>",
@@ -584,7 +602,7 @@ def main():
                 yaxis_title="Growth %",
                 legend=dict(orientation="h", y=1.12, x=0.5, xanchor="center"),
             )
-            fig_growth.update_yaxes(gridcolor="#f1f5f9", zeroline=True, zerolinecolor="#cbd5e1")
+            fig_growth.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=True, zerolinecolor="#cbd5e1")
             fig_growth.add_hline(y=0, line_dash="dot", line_color="#94a3b8", line_width=1)
             st.plotly_chart(fig_growth, use_container_width=True)
 
@@ -628,7 +646,7 @@ def main():
             legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
             margin=dict(l=200, r=20, t=40, b=50),
         )
-        fig_deep.update_xaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_deep.update_xaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_deep, use_container_width=True)
 
     with col_d2:
@@ -636,12 +654,12 @@ def main():
         fig_dv = go.Figure()
         fig_dv.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["deep_listens"],
-            name="Deep Listens", marker_color="#1e40af",
+            name="Deep Listens", marker_color=BRAND["teal"],
             hovertemplate="Deep: %{y:,.0f}<extra></extra>",
         ))
         fig_dv.add_trace(go.Bar(
             x=ep_data["short_label"], y=ep_data["viral_reach"],
-            name="Viral Reach", marker_color="#fbbf24",
+            name="Viral Reach", marker_color=BRAND["orange"],
             hovertemplate="Viral: %{y:,.0f}<extra></extra>",
         ))
         fig_dv.update_layout(
@@ -650,14 +668,14 @@ def main():
             legend=dict(orientation="h", y=1.08, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_dv.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_dv.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_dv, use_container_width=True)
 
     # Engagement depth ratio chart
     st.markdown("### Engagement Depth Ratio")
     st.caption("What % of each episode's total reach comes from deep listens. Higher = more engaged audience.")
     sorted_depth = ep_data.sort_values("depth_ratio", ascending=True)
-    bar_colors = ["#1e40af" if r >= 50 else "#f59e0b" if r >= 20 else "#ef4444" for r in sorted_depth["depth_ratio"]]
+    bar_colors = [BRAND["teal"] if r >= 50 else BRAND["orange"] if r >= 20 else BRAND["pink"] for r in sorted_depth["depth_ratio"]]
     fig_ratio = go.Figure(go.Bar(
         y=sorted_depth["label"], x=sorted_depth["depth_ratio"],
         orientation="h",
@@ -672,7 +690,7 @@ def main():
         xaxis_title="Deep Listens as % of Total Reach",
         margin=dict(l=220, r=60, t=20, b=50),
     )
-    fig_ratio.update_xaxes(gridcolor="#f1f5f9", zeroline=False, range=[0, min(105, sorted_depth["depth_ratio"].max() + 10)])
+    fig_ratio.update_xaxes(gridcolor=BRAND["light_blue"], zeroline=False, range=[0, min(105, sorted_depth["depth_ratio"].max() + 10)])
     fig_ratio.add_vline(x=50, line_dash="dot", line_color="#94a3b8", line_width=1,
                         annotation_text="50%", annotation_position="top")
     st.plotly_chart(fig_ratio, use_container_width=True)
@@ -734,7 +752,7 @@ def main():
             xaxis_title="Total Reach",
             margin=dict(l=200, r=60, t=40, b=50),
         )
-        fig_top.update_xaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_top.update_xaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_top, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -763,7 +781,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_audio.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_audio.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_audio, use_container_width=True)
 
     with col_soc:
@@ -783,7 +801,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_soc.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_soc.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_soc, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -811,7 +829,7 @@ def main():
             yaxis_title="Impressions",
             xaxis_tickangle=-45,
         )
-        fig_li_imp.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_li_imp.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_li_imp, use_container_width=True)
 
     with col_li2:
@@ -819,17 +837,17 @@ def main():
         fig_li_eng = go.Figure()
         fig_li_eng.add_trace(go.Bar(
             x=li_data["short_label"], y=li_data["li_likes"],
-            name="Likes", marker_color="#0A66C2",
+            name="Likes", marker_color=BRAND["indigo"],
             hovertemplate="Likes: %{y:,.0f}<extra></extra>",
         ))
         fig_li_eng.add_trace(go.Bar(
             x=li_data["short_label"], y=li_data["li_comments"],
-            name="Comments", marker_color="#57A4E0",
+            name="Comments", marker_color=BRAND["blue"],
             hovertemplate="Comments: %{y:,.0f}<extra></extra>",
         ))
         fig_li_eng.add_trace(go.Bar(
             x=li_data["short_label"], y=li_data["li_shares"],
-            name="Shares", marker_color="#A8D0F0",
+            name="Shares", marker_color=BRAND["light_blue"],
             hovertemplate="Shares: %{y:,.0f}<extra></extra>",
         ))
         fig_li_eng.update_layout(
@@ -838,7 +856,7 @@ def main():
             legend=dict(orientation="h", y=1.1, x=0.5, xanchor="center"),
             xaxis_tickangle=-45,
         )
-        fig_li_eng.update_yaxes(gridcolor="#f1f5f9", zeroline=False)
+        fig_li_eng.update_yaxes(gridcolor=BRAND["light_blue"], zeroline=False)
         st.plotly_chart(fig_li_eng, use_container_width=True)
 
     st.markdown('<hr class="section-divider">', unsafe_allow_html=True)
@@ -860,8 +878,8 @@ def main():
         x=hm_labels,
         y=ep_data["label"],
         colorscale=[
-            [0, "#f8fafc"], [0.15, "#dbeafe"], [0.3, "#93c5fd"],
-            [0.5, "#3b82f6"], [0.7, "#1d4ed8"], [1.0, "#1e3a5f"],
+            [0, BRAND["cream"]], [0.15, BRAND["light_blue"]], [0.3, BRAND["blue"]],
+            [0.5, BRAND["indigo"]], [0.75, "#3B3899"], [1.0, BRAND["teal"]],
         ],
         showscale=True,
         text=text_labels,
